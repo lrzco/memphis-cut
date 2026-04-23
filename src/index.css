@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+@theme {
+  --color-surface: #FAFAF7;
+  --color-surface-alt: #F2F0EB;
+  --color-surface-card: #FFFFFF;
+  --color-ink: #111111;
+  --color-ink-muted: #555555;
+  --color-ink-subtle: #999999;
+  --color-border: #E5E2DC;
+  --color-border-light: #F0EDE7;
+  --color-accent: #1A1A1A;
+  --color-accent-hover: #333333;
+  --color-warm: #C8956C;
+  --color-warm-light: #E8D5C0;
+  --color-warm-bg: #FDF8F3;
+  --font-display: 'DM Serif Display', serif;
+  --font-body: 'Inter', sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: var(--color-warm);
+  color: white;
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-ink-subtle); border-radius: 3px; }
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.5s ease-out forwards;
+}
+
+/* Custom button */
+.btn-primary {
+  background: var(--color-ink);
+  color: white;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  border-radius: 9999px;
+}
+.btn-primary:hover {
+  background: var(--color-accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+
+.btn-outline {
+  border: 1.5px solid var(--color-ink);
+  color: var(--color-ink);
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border-radius: 9999px;
+  background: transparent;
+}
+.btn-outline:hover {
+  background: var(--color-ink);
+  color: white;
+}
+
+/* Input focus */
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--color-ink) !important;
+  box-shadow: 0 0 0 3px rgba(0,0,0,0.06);
+}
+
+/* Subtle divider */
+.divider {
+  height: 1px;
+  background: var(--color-border);
+}
