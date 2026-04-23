@@ -9,22 +9,22 @@ import CTA from './components/CTA';
 import Footer from './components/Footer';
 import BookingModal from './components/BookingModal';
 import AuthModal from './components/AuthModal';
+import CustomerDashboard from './components/CustomerDashboard';
 import { supabase } from './lib/supabase';
 import { preventClickjacking } from './utils/security';
 
 export default function App() {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const [initialService, setInitialService] = useState<string | undefined>();
   const [user, setUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Security: prevent clickjacking
   useEffect(() => {
     preventClickjacking();
   }, []);
 
-  // Check for existing session
   useEffect(() => {
     const checkSession = async () => {
       try {
@@ -33,7 +33,6 @@ export default function App() {
           setUser(session.user);
         }
       } catch (error) {
-        // Supabase not configured yet - that's okay
         console.log('Supabase not configured - running in demo mode');
       } finally {
         setIsLoading(false);
@@ -42,19 +41,14 @@ export default function App() {
 
     checkSession();
 
-    // Listen for auth changes
     try {
       const { data: { subscription } } = supabase.auth.onAuthStateChange(
         (_event, session) => {
           setUser(session?.user ?? null);
         }
       );
-
-      return () => {
-        subscription.unsubscribe();
-      };
+      return () => { subscription.unsubscribe(); };
     } catch {
-      // Supabase not configured
       setIsLoading(false);
     }
   }, []);
@@ -104,36 +98,24 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-surface">
-      {/* Navigation */}
       <Navbar
         onAuthClick={handleAuthClick}
         onBookingClick={() => handleBookingClick()}
+        onDashboardClick={() => setIsDashboardOpen(true)}
         isLoggedIn={!!user}
         onLogout={handleLogout}
       />
 
-      {/* Main Content */}
       <main>
-        {/* Hero Section */}
         <Hero onBookingClick={() => handleBookingClick()} />
-
-        {/* Services Section */}
         <Services onBookingClick={handleBookingClick} />
-
-        {/* Team Section */}
         <Team />
-
-        {/* About Section */}
         <About />
-
-        {/* Final CTA Section */}
         <CTA onBookingClick={() => handleBookingClick()} />
       </main>
 
-      {/* Footer */}
       <Footer />
 
-      {/* Modals */}
       <BookingModal
         isOpen={isBookingOpen}
         onClose={() => {
@@ -143,6 +125,7 @@ export default function App() {
         initialService={initialService}
         isLoggedIn={!!user}
         onAuthRequired={handleAuthRequired}
+        user={user}
       />
 
       <AuthModal
@@ -151,7 +134,14 @@ export default function App() {
         onSuccess={handleAuthSuccess}
       />
 
-      {/* Floating Booking Button (Mobile) */}
+      {user && (
+        <CustomerDashboard
+          isOpen={isDashboardOpen}
+          onClose={() => setIsDashboardOpen(false)}
+          user={user}
+        />
+      )}
+
       <motion.button
         className="fixed bottom-6 right-6 lg:hidden z-40 btn-primary px-6 py-4 shadow-2xl flex items-center gap-2 text-sm"
         onClick={() => handleBookingClick()}

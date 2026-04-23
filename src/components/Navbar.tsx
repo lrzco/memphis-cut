@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, User, Calendar } from 'lucide-react';
+import { Menu, X, User, Calendar, LayoutDashboard } from 'lucide-react';
 
 interface NavbarProps {
   onAuthClick: () => void;
   onBookingClick: () => void;
+  onDashboardClick: () => void;
   isLoggedIn: boolean;
   onLogout: () => void;
 }
 
-export default function Navbar({ onAuthClick, onBookingClick, isLoggedIn, onLogout }: NavbarProps) {
+export default function Navbar({ onAuthClick, onBookingClick, onDashboardClick, isLoggedIn, onLogout }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -61,7 +62,12 @@ export default function Navbar({ onAuthClick, onBookingClick, isLoggedIn, onLogo
           {/* Desktop CTAs */}
           <div className="hidden lg:flex items-center gap-3">
             {isLoggedIn ? (
-              <button onClick={onLogout} className={`text-sm transition-colors ${scrolled ? 'text-ink-muted hover:text-ink' : 'text-white/70 hover:text-white'}`}>Déconnexion</button>
+              <>
+                <button onClick={onDashboardClick} className={`flex items-center gap-1.5 text-sm transition-colors ${scrolled ? 'text-ink-muted hover:text-ink' : 'text-white/70 hover:text-white'}`}>
+                  <LayoutDashboard className="w-4 h-4" /> Mon espace
+                </button>
+                <button onClick={onLogout} className={`text-sm transition-colors ${scrolled ? 'text-ink-muted hover:text-ink' : 'text-white/70 hover:text-white'}`}>Déconnexion</button>
+              </>
             ) : (
               <button onClick={onAuthClick} className={`flex items-center gap-2 text-sm transition-colors ${scrolled ? 'text-ink-muted hover:text-ink' : 'text-white/70 hover:text-white'}`}>
                 <User className="w-4 h-4" /> Connexion
@@ -89,7 +95,12 @@ export default function Navbar({ onAuthClick, onBookingClick, isLoggedIn, onLogo
               ))}
               <div className="pt-4 border-t border-border space-y-3">
                 {isLoggedIn ? (
-                  <button onClick={() => { setIsOpen(false); onLogout(); }} className="block w-full text-left text-sm text-ink-muted py-2">Déconnexion</button>
+                  <>
+                    <button onClick={() => { setIsOpen(false); onDashboardClick(); }} className="block w-full text-left text-sm text-ink-muted py-2 flex items-center gap-2">
+                      <LayoutDashboard className="w-4 h-4" /> Mon espace
+                    </button>
+                    <button onClick={() => { setIsOpen(false); onLogout(); }} className="block w-full text-left text-sm text-ink-muted py-2">Déconnexion</button>
+                  </>
                 ) : (
                   <button onClick={() => { setIsOpen(false); onAuthClick(); }} className="block w-full text-left text-sm text-ink-muted py-2">Connexion / Inscription</button>
                 )}

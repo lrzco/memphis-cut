@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Clock, User, ChevronRight, ChevronLeft, Check, Loader2 } from 'lucide-react';
+import { X, Calendar, Clock, User, ChevronRight, ChevronLeft, Check, Loader2, AlertCircle } from 'lucide-react';
+import emailjs from '@emailjs/browser';
+import { createReservation } from '../lib/supabase';
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -8,6 +10,7 @@ interface BookingModalProps {
   initialService?: string;
   isLoggedIn: boolean;
   onAuthRequired: () => void;
+  user?: any;
 }
 
 const services = [
@@ -37,7 +40,7 @@ const barbers = [
 
 const slots = ['09:00','09:30','10:00','10:30','11:00','11:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30','18:00','18:30','19:00'];
 
-export default function BookingModal({ isOpen, onClose, initialService, isLoggedIn, onAuthRequired }: BookingModalProps) {
+export default function BookingModal({ isOpen, onClose, initialService, isLoggedIn, onAuthRequired, user }: BookingModalProps) {
   const [step, setStep] = useState(1);
   const [svc, setSvc] = useState('');
   const [barber, setBarber] = useState('');
@@ -56,6 +59,7 @@ export default function BookingModal({ isOpen, onClose, initialService, isLogged
   const reset = () => { setStep(1); setSvc(''); setBarber(''); setDate(''); setTime(''); setErrs({}); setSuccess(false); };
   const handleClose = () => { reset(); onClose(); };
   const getSvc = () => services.find(s => s.id === svc);
+  const getBarber = () => barbers.find(b => b.id === barber);
 
   const getDates = () => {
     const d = []; const t = new Date();
@@ -72,10 +76,45 @@ export default function BookingModal({ isOpen, onClose, initialService, isLogged
   };
 
   const handleSubmit = async () => {
-    if (!isLoggedIn) { onAuthRequired(); return; }
+    if (!isLoggedIn || !user) { onAuthRequired(); return; }
     setSubmitting(true);
-    await new Promise(r => setTimeout(r, 1200));
-    setSubmitting(false); setSuccess(true);
+    setErrs({});
+
+    try {
+      const { error } = await createReservation({
+        user_id: user.id,
+        service: getSvc()?.name || svc,
+        barber: getBarber()?.name || barber,
+        date,
+        time,
+        price: getSvc()?.price || 0,
+      });
+
+      if (error) throw new Error(error.message);
+
+      // Send confirmation email via EmailJS if configured
+      const ejsService = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+      const ejsTemplate = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+      const ejsKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+
+      if (ejsService && ejsTemplate && ejsKey) {
+        await emailjs.send(ejsService, ejsTemplate, {
+          to_email: user.email,
+          client_name: user.user_metadata?.full_name || user.email,
+          service: getSvc()?.name,
+          barber: getBarber()?.name,
+          date,
+          time,
+          price: `${getSvc()?.price}€`,
+        }, ejsKey);
+      }
+
+      setSuccess(true);
+    } catch (err: any) {
+      setErrs({ submit: err.message || 'Une erreur est survenue. Veuillez réessayer.' });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const cats = [...new Set(services.map(s => s.cat))];
@@ -107,10 +146,10 @@ export default function BookingModal({ isOpen, onClose, initialService, isLogged
                 <motion.div className="text-center py-10" initial={{ opacity:0, scale:0.95 }} animate={{ opacity:1, scale:1 }}>
                   <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-5"><Check className="w-8 h-8 text-green-600" /></div>
                   <h3 className="font-display text-2xl text-ink mb-2">Réservation confirmée !</h3>
-                  <p className="text-ink-muted mb-6 text-sm">Vous recevrez un email de confirmation.</p>
+                  <p className="text-ink-muted mb-6 text-sm">Un email de confirmation a été envoyé à <strong>{user?.email}</strong>.</p>
                   <div className="p-4 rounded-xl bg-surface-alt border border-border-light text-left space-y-2 mb-6 text-sm">
                     <div className="flex justify-between"><span className="text-ink-muted">Service</span><span className="text-ink font-medium">{getSvc()?.name}</span></div>
-                    <div className="flex justify-between"><span className="text-ink-muted">Barbier</span><span className="text-ink font-medium">{barbers.find(b=>b.id===barber)?.name}</span></div>
+                    <div className="flex justify-between"><span className="text-ink-muted">Barbier</span><span className="text-ink font-medium">{getBarber()?.name}</span></div>
                     <div className="flex justify-between"><span className="text-ink-muted">Date</span><span className="text-ink font-medium">{date}</span></div>
                     <div className="flex justify-between"><span className="text-ink-muted">Heure</span><span className="text-ink font-medium">{time}</span></div>
                     <div className="flex justify-between pt-2 border-t border-border"><span className="text-ink-muted">Prix</span><span className="text-warm font-bold text-lg">{getSvc()?.price}€</span></div>
@@ -190,7 +229,7 @@ export default function BookingModal({ isOpen, onClose, initialService, isLogged
                     <h3 className="font-display text-lg text-ink mb-5 flex items-center gap-2"><Check className="w-5 h-5 text-warm" /> Confirmez votre réservation</h3>
                     <div className="space-y-3">
                       <div className="p-4 rounded-xl bg-surface-alt border border-border-light"><p className="text-ink-subtle text-xs uppercase tracking-wider mb-0.5">Service</p><p className="text-ink font-semibold text-sm">{getSvc()?.name}</p></div>
-                      <div className="p-4 rounded-xl bg-surface-alt border border-border-light"><p className="text-ink-subtle text-xs uppercase tracking-wider mb-0.5">Barbier</p><p className="text-ink font-semibold text-sm">{barbers.find(b=>b.id===barber)?.name}</p></div>
+                      <div className="p-4 rounded-xl bg-surface-alt border border-border-light"><p className="text-ink-subtle text-xs uppercase tracking-wider mb-0.5">Barbier</p><p className="text-ink font-semibold text-sm">{getBarber()?.name}</p></div>
                       <div className="grid grid-cols-2 gap-3">
                         <div className="p-4 rounded-xl bg-surface-alt border border-border-light"><p className="text-ink-subtle text-xs uppercase tracking-wider mb-0.5">Date</p><p className="text-ink font-semibold text-sm">{date}</p></div>
                         <div className="p-4 rounded-xl bg-surface-alt border border-border-light"><p className="text-ink-subtle text-xs uppercase tracking-wider mb-0.5">Heure</p><p className="text-ink font-semibold text-sm">{time}</p></div>
@@ -200,6 +239,12 @@ export default function BookingModal({ isOpen, onClose, initialService, isLogged
                         <span className="text-warm font-bold text-2xl font-display">{getSvc()?.price}€</span>
                       </div>
                     </div>
+                    {errs.submit && (
+                      <div className="mt-4 p-3 rounded-xl bg-red-50 border border-red-200 flex items-start gap-2">
+                        <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+                        <p className="text-red-600 text-sm">{errs.submit}</p>
+                      </div>
+                    )}
                     <p className="text-ink-subtle text-xs mt-3 text-center">Paiement sur place · Annulation gratuite jusqu'à 24h avant</p>
                   </motion.div>}
 
