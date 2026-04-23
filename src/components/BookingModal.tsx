@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar, Clock, User, ChevronRight, ChevronLeft, Check, Loader2, AlertCircle } from 'lucide-react';
 import emailjs from '@emailjs/browser';
-import { createReservation } from '../lib/supabase';
+import { createReservation, getBookedSlots } from '../lib/supabase';
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -49,6 +49,8 @@ export default function BookingModal({ isOpen, onClose, initialService, isLogged
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [errs, setErrs] = useState<Record<string,string>>({});
+  const [bookedSlots, setBookedSlots] = useState<string[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
 
   useEffect(() => {
     if (initialService) { const f = services.find(s => s.name === initialService); if (f) { setSvc(f.id); setStep(2); } }
@@ -56,7 +58,20 @@ export default function BookingModal({ isOpen, onClose, initialService, isLogged
 
   useEffect(() => { document.body.style.overflow = isOpen ? 'hidden' : ''; return () => { document.body.style.overflow = ''; }; }, [isOpen]);
 
-  const reset = () => { setStep(1); setSvc(''); setBarber(''); setDate(''); setTime(''); setErrs({}); setSuccess(false); };
+  // Fetch booked slots whenever barber or date changes on step 3
+  useEffect(() => {
+    if (barber && date) {
+      setLoadingSlots(true);
+      setTime('');
+      getBookedSlots(date, barbers.find(b => b.id === barber)?.name || barber)
+        .then(({ data }) => setBookedSlots(data ?? []))
+        .finally(() => setLoadingSlots(false));
+    } else {
+      setBookedSlots([]);
+    }
+  }, [barber, date]);
+
+  const reset = () => { setStep(1); setSvc(''); setBarber(''); setDate(''); setTime(''); setErrs({}); setSuccess(false); setBookedSlots([]); };
   const handleClose = () => { reset(); onClose(); };
   const getSvc = () => services.find(s => s.id === svc);
   const getBarber = () => barbers.find(b => b.id === barber);
@@ -214,14 +229,28 @@ export default function BookingModal({ isOpen, onClose, initialService, isLogged
                       );})}
                     </div>
                     <p className="text-ink-muted text-xs mb-2 font-medium">Horaire</p>
-                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5">
-                      {slots.map(t => (
-                        <button key={t} onClick={() => { setTime(t); setErrs({}); }}
-                          className={`p-2.5 rounded-xl text-center transition-all ${time===t ? selBg : unSelBg}`}>
-                          <p className={`text-sm font-medium ${time===t ? selText : unSelText}`}>{t}</p>
-                        </button>
-                      ))}
-                    </div>
+                    {loadingSlots ? (
+                      <div className="flex items-center gap-2 py-4 text-ink-subtle text-sm">
+                        <Loader2 className="w-4 h-4 animate-spin" /> Vérification des disponibilités...
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5">
+                        {slots.map(t => {
+                          const isBooked = bookedSlots.includes(t);
+                          return (
+                            <button key={t}
+                              onClick={() => { if (!isBooked) { setTime(t); setErrs({}); } }}
+                              disabled={isBooked}
+                              title={isBooked ? 'Créneau indisponible' : ''}
+                              className={`p-2.5 rounded-xl text-center transition-all relative
+                                ${isBooked ? 'bg-surface-alt opacity-40 cursor-not-allowed' : time===t ? selBg : unSelBg}`}>
+                              <p className={`text-sm font-medium ${isBooked ? 'text-ink-subtle line-through' : time===t ? selText : unSelText}`}>{t}</p>
+                              {isBooked && <span className="absolute inset-0 flex items-center justify-center text-[9px] text-ink-subtle font-medium pt-5">Pris</span>}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
                   </motion.div>}
 
                   {/* Step 4: Confirm */}

@@ -10,6 +10,7 @@ import Footer from './components/Footer';
 import BookingModal from './components/BookingModal';
 import AuthModal from './components/AuthModal';
 import CustomerDashboard from './components/CustomerDashboard';
+import AdminDashboard from './components/AdminDashboard';
 import { supabase } from './lib/supabase';
 import { preventClickjacking } from './utils/security';
 
@@ -17,6 +18,7 @@ export default function App() {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [initialService, setInitialService] = useState<string | undefined>();
   const [user, setUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -102,7 +104,9 @@ export default function App() {
         onAuthClick={handleAuthClick}
         onBookingClick={() => handleBookingClick()}
         onDashboardClick={() => setIsDashboardOpen(true)}
+        onAdminClick={() => setIsAdminOpen(true)}
         isLoggedIn={!!user}
+        isAdmin={user?.user_metadata?.role === 'admin'}
         onLogout={handleLogout}
       />
 
@@ -139,6 +143,13 @@ export default function App() {
           isOpen={isDashboardOpen}
           onClose={() => setIsDashboardOpen(false)}
           user={user}
+        />
+      )}
+
+      {user?.user_metadata?.role === 'admin' && (
+        <AdminDashboard
+          isOpen={isAdminOpen}
+          onClose={() => setIsAdminOpen(false)}
         />
       )}
 

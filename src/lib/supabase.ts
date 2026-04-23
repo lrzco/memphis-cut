@@ -3,7 +3,6 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// Vérification de la configuration au démarrage
 const isConfigured =
   supabaseUrl &&
   supabaseAnonKey &&
@@ -31,7 +30,8 @@ export const supabase = createClient(
 
 export const isSupabaseConfigured = () => isConfigured;
 
-// Auth helpers
+// ─── Auth ────────────────────────────────────────────────────────────────────
+
 export const signUp = async (
   email: string,
   password: string,
@@ -40,10 +40,7 @@ export const signUp = async (
   if (!isConfigured) {
     return {
       data: { user: null, session: null },
-      error: {
-        message:
-          'Service indisponible : la base de données n\'est pas encore configurée. Merci de contacter l\'administrateur.',
-      } as any,
+      error: { message: 'Service indisponible : la base de données n\'est pas encore configurée. Merci de contacter l\'administrateur.' } as any,
     };
   }
   try {
@@ -57,10 +54,9 @@ export const signUp = async (
     return {
       data: { user: null, session: null },
       error: {
-        message:
-          err?.message?.includes('fetch')
-            ? 'Impossible de joindre le serveur. Vérifiez votre connexion internet.'
-            : err?.message || 'Erreur inconnue',
+        message: err?.message?.includes('fetch')
+          ? 'Impossible de joindre le serveur. Vérifiez votre connexion internet.'
+          : err?.message || 'Erreur inconnue',
       } as any,
     };
   }
@@ -70,10 +66,7 @@ export const signIn = async (email: string, password: string) => {
   if (!isConfigured) {
     return {
       data: { user: null, session: null },
-      error: {
-        message:
-          'Service indisponible : la base de données n\'est pas encore configurée.',
-      } as any,
+      error: { message: 'Service indisponible : la base de données n\'est pas encore configurée.' } as any,
     };
   }
   try {
@@ -83,10 +76,9 @@ export const signIn = async (email: string, password: string) => {
     return {
       data: { user: null, session: null },
       error: {
-        message:
-          err?.message?.includes('fetch')
-            ? 'Impossible de joindre le serveur. Vérifiez votre connexion internet.'
-            : err?.message || 'Erreur inconnue',
+        message: err?.message?.includes('fetch')
+          ? 'Impossible de joindre le serveur. Vérifiez votre connexion internet.'
+          : err?.message || 'Erreur inconnue',
       } as any,
     };
   }
@@ -108,7 +100,8 @@ export const getCurrentUser = async () => {
   }
 };
 
-// Reservation helpers
+// ─── Reservations (client) ───────────────────────────────────────────────────
+
 export const createReservation = async (reservation: {
   user_id: string;
   service: string;
@@ -130,7 +123,8 @@ export const getUserReservations = async (userId: string) => {
     .from('reservations')
     .select('*')
     .eq('user_id', userId)
-    .order('date', { ascending: true });
+    .order('date', { ascending: true })
+    .order('time', { ascending: true });
   return { data, error };
 };
 
@@ -140,4 +134,48 @@ export const cancelReservation = async (reservationId: string) => {
     .delete()
     .eq('id', reservationId);
   return { error };
+};
+
+// ─── Availability ────────────────────────────────────────────────────────────
+
+/** Returns list of already-booked time strings for a given barber + date */
+export const getBookedSlots = async (date: string, barber: string) => {
+  const { data, error } = await supabase
+    .from('reservations')
+    .select('time')
+    .eq('date', date)
+    .eq('barber', barber);
+  return { data: (data ?? []).map((r: { time: string }) => r.time), error };
+};
+
+// ─── Admin ───────────────────────────────────────────────────────────────────
+
+/** Admin: fetch all reservations joined with client profile (name + phone) */
+export const getAllReservations = async () => {
+  const { data, error } = await supabase
+    .from('reservations')
+    .select(`
+      *,
+      profiles (
+        full_name,
+        phone
+      )
+    `)
+    .order('date', { ascending: true })
+    .order('time', { ascending: true });
+  return { data, error };
+};
+
+/** Admin: reschedule a reservation */
+export const updateReservation = async (
+  reservationId: string,
+  updates: { date?: string; time?: string; barber?: string; service?: string }
+) => {
+  const { data, error } = await supabase
+    .from('reservations')
+    .update(updates)
+    .eq('id', reservationId)
+    .select()
+    .single();
+  return { data, error };
 };

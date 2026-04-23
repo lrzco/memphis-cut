@@ -1,16 +1,18 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, User, Calendar, LayoutDashboard } from 'lucide-react';
+import { Menu, X, User, Calendar, LayoutDashboard, ShieldCheck } from 'lucide-react';
 
 interface NavbarProps {
   onAuthClick: () => void;
   onBookingClick: () => void;
   onDashboardClick: () => void;
+  onAdminClick: () => void;
   isLoggedIn: boolean;
+  isAdmin?: boolean;
   onLogout: () => void;
 }
 
-export default function Navbar({ onAuthClick, onBookingClick, onDashboardClick, isLoggedIn, onLogout }: NavbarProps) {
+export default function Navbar({ onAuthClick, onBookingClick, onDashboardClick, onAdminClick, isLoggedIn, isAdmin, onLogout }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -63,6 +65,11 @@ export default function Navbar({ onAuthClick, onBookingClick, onDashboardClick, 
           <div className="hidden lg:flex items-center gap-3">
             {isLoggedIn ? (
               <>
+                {isAdmin && (
+                  <button onClick={onAdminClick} className={`flex items-center gap-1.5 text-sm transition-colors ${scrolled ? 'text-warm hover:text-ink' : 'text-warm-light hover:text-white'}`}>
+                    <ShieldCheck className="w-4 h-4" /> Admin
+                  </button>
+                )}
                 <button onClick={onDashboardClick} className={`flex items-center gap-1.5 text-sm transition-colors ${scrolled ? 'text-ink-muted hover:text-ink' : 'text-white/70 hover:text-white'}`}>
                   <LayoutDashboard className="w-4 h-4" /> Mon espace
                 </button>
@@ -96,7 +103,12 @@ export default function Navbar({ onAuthClick, onBookingClick, onDashboardClick, 
               <div className="pt-4 border-t border-border space-y-3">
                 {isLoggedIn ? (
                   <>
-                    <button onClick={() => { setIsOpen(false); onDashboardClick(); }} className="block w-full text-left text-sm text-ink-muted py-2 flex items-center gap-2">
+                    {isAdmin && (
+                      <button onClick={() => { setIsOpen(false); onAdminClick(); }} className="flex items-center gap-2 w-full text-left text-sm text-warm py-2">
+                        <ShieldCheck className="w-4 h-4" /> Panel Admin
+                      </button>
+                    )}
+                    <button onClick={() => { setIsOpen(false); onDashboardClick(); }} className="flex items-center gap-2 w-full text-left text-sm text-ink-muted py-2">
                       <LayoutDashboard className="w-4 h-4" /> Mon espace
                     </button>
                     <button onClick={() => { setIsOpen(false); onLogout(); }} className="block w-full text-left text-sm text-ink-muted py-2">Déconnexion</button>
