@@ -27,7 +27,7 @@ export default function Hero({ onBookingClick }: HeroProps) {
           </div>
 
           {/* Title */}
-          <h1 className="font-display text-6xl sm:text-7xl md:text-8xl lg:text-9xl text-white leading-[0.85] mb-6 tracking-tight">
+          <h1 className="font-display text-5xl sm:text-7xl md:text-8xl lg:text-9xl text-white leading-[0.85] mb-6 tracking-tight">
             Memphis<br />
             <span className="text-warm-light">Cut</span>
           </h1>

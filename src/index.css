@@ -87,3 +87,13 @@ input:focus, select:focus, textarea:focus {
   height: 1px;
   background: var(--color-border);
 }
+
+/* Mobile touch optimization */
+button, a {
+  touch-action: manipulation;
+}
+
+/* Safe area utilities for notch phones */
+.bottom-safe {
+  bottom: calc(1.5rem + env(safe-area-inset-bottom));
+}

@@ -142,15 +142,15 @@ export default function BookingModal({ isOpen, onClose, initialService, isLogged
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div className="fixed inset-0 z-[100] flex items-center justify-center p-4" initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}>
+        <motion.div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-4" initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}>
           <motion.div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={handleClose} />
-          <motion.div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-2xl border border-border-light"
-            initial={{ opacity:0, scale:0.96, y:16 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:0.96, y:16 }}
-            transition={{ type:'spring', damping:25, stiffness:300 }}>
+          <motion.div className="relative w-full sm:max-w-2xl max-h-[92vh] overflow-y-auto bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl border-t border-border-light sm:border"
+            initial={{ opacity:0, y:32 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:32 }}
+            transition={{ type:'spring', damping:28, stiffness:320 }}>
             {/* Header */}
             <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-xl border-b border-border-light px-6 py-3 flex items-center justify-between">
               <div><h2 className="font-display text-lg text-ink">Réservation</h2><p className="text-ink-subtle text-xs">Étape {step} sur 4</p></div>
-              <button onClick={handleClose} className="w-8 h-8 rounded-full bg-surface-alt flex items-center justify-center hover:bg-surface"><X className="w-4 h-4 text-ink-muted" /></button>
+              <button onClick={handleClose} className="w-10 h-10 rounded-full bg-surface-alt flex items-center justify-center hover:bg-surface"><X className="w-4 h-4 text-ink-muted" /></button>
             </div>
 
             {/* Progress */}
@@ -177,7 +177,7 @@ export default function BookingModal({ isOpen, onClose, initialService, isLogged
                   {step===1 && <motion.div initial={{ opacity:0, x:16 }} animate={{ opacity:1, x:0 }}>
                     <h3 className="font-display text-lg text-ink mb-3 flex items-center gap-2"><Calendar className="w-5 h-5 text-warm" /> Choisissez votre prestation</h3>
                     {errs.svc && <p className="text-red-500 text-sm mb-3">{errs.svc}</p>}
-                    <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-1">
+                    <div className="space-y-2 max-h-[42vh] overflow-y-auto pr-1">
                       {cats.map(c => (
                         <div key={c}>
                           <p className="text-warm text-xs font-semibold tracking-wider uppercase mb-1.5 mt-3">{c}</p>

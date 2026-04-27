@@ -207,7 +207,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+          className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -217,7 +217,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
             onClick={handleClose}
           />
           <motion.div
-            className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border border-border-light max-h-[90vh] overflow-y-auto"
+            className="relative w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden border-t border-border-light sm:border max-h-[92vh] overflow-y-auto"
             initial={{ opacity: 0, scale: 0.96, y: 16 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 16 }}
@@ -227,7 +227,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
             <div className="relative px-6 pt-8 pb-5 text-center border-b border-border-light">
               <button
                 onClick={handleClose}
-                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-surface-alt flex items-center justify-center hover:bg-surface transition-colors"
+                className="absolute top-4 right-4 w-10 h-10 rounded-full bg-surface-alt flex items-center justify-center hover:bg-surface transition-colors"
               >
                 <X className="w-4 h-4 text-ink-muted" />
               </button>

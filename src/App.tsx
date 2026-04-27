@@ -154,7 +154,7 @@ export default function App() {
       )}
 
       <motion.button
-        className="fixed bottom-6 right-6 lg:hidden z-40 btn-primary px-6 py-4 shadow-2xl flex items-center gap-2 text-sm"
+        className="fixed bottom-safe right-6 lg:hidden z-40 btn-primary px-6 py-4 shadow-2xl flex items-center gap-2 text-sm"
         onClick={() => handleBookingClick()}
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
